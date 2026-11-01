@@ -15,7 +15,7 @@
 - [x] 对端真实主机名由其实际回执确认是 bronzehuang-pc1。
 - [x] 通过 work-tool 的 agent-remote-controller 建立双方每分钟基础通信；收到对端迁移及安装阶段回执。
 - [x] 通过基础通信通知对端拉取代码并安装独立 Skill；对端已回执 0.1.2 安装成功、任务 Running。
-- [ ] 双向 Agent Courier 短消息、文件及独立回执调试完成。
+- [x] 双向 Agent Courier 短消息、文件、独立回执及双方原聊天 Queue userMessage 已实际核对。
 - [ ] 调试前保留基础通信作为异常恢复通道，成功后注销双方旧 Agent 定时扫描。
 
 生产 Pod 重建/重启的持续停止要求保持有效；本通信开发不恢复任何历史业务授权。

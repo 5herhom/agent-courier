@@ -88,6 +88,8 @@ agent-courier status --channel work --sync
 
 读取默认不改变处理状态；接手时 `--accept` 记录 `started`。先核对返回的 `receiver_receipt`，已 completed 的消息不重复处理，`--accept` 不会将它退回 started。回复 `--complete` 同时为原消息追加 `completed`。回复文件使用同一模板。只能为本机实际收件端确认；完成、失败等回执需要真实依据。
 
+收到仅含结果或确认的 `kind=reply` 时，核对后 `ack completed` 即可；没有新问题时不再回复，避免确认循环。
+
 状态区分 `received`、`delivered`、`started`、`completed`、`failed` 和 `delivery-unknown`。适配器要求 Queue 支持 `--thread` 和 `--message`；仅在本机帮助声明支持时附加 `--resume`，兼容没有该参数的版本。Codex Queue 成功退出仅证明接受入队，resume 的警告不证明开始执行；任务结果须以接收 Agent 的回执和回复判断。当前 Queue CLI 没有可靠的历史查询接口，未知投递保留待核实，不自动再入队。
 
 ```bash

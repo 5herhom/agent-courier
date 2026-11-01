@@ -39,6 +39,8 @@ courier read --channel work --message-id <ID> --accept
 
 回复使用 `reply --in-reply-to <ID> --message <短文本或固定模板>`；明确完成原任务时加 `--complete`。需要报告状态时调用 `ack --message-id <ID> --status <状态> --detail <实际依据>`。只替本机收件端确认，入队成功不等于任务开始或完成。
 
+`kind=reply` 若仅含结果或确认，核对后记录 `ack completed` 即可；没有新问题时不再生成回复，避免确认循环。回复中确有待回答的问题时，再按其实际内容回复。
+
 发布失败先用 `status` 核实待发布 ID，勿重新 send 同一任务。发现 `intent` 或 `delivery-unknown` 时先核对原聊天/运行记录，默认 `retry` 只返回检查点；只有确有未投递证据时才显式指定 `--verified-not-delivered --evidence <依据>`。已投递或已开始的任务不重新入队。
 
 `watch --once` 执行一次检查，`watch` 为系统任务使用的常驻循环。通过 `disable-listener` 或 `uninstall-listener` 停止自动监听；这些操作不会停止现有业务任务或删除消息历史。

@@ -17,7 +17,9 @@ def install_skill(target):
         raise CourierError("Skill 安装目录不能位于 Python 源码包内部")
     scripts.mkdir(parents=True, exist_ok=True)
     shutil.copytree(package, destination, dirs_exist_ok=True, ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
-    shutil.copyfile(package / "resources/SKILL.md", target / "SKILL.md")
+    shutil.copyfile(package / "resources/guide.md", target / "SKILL.md")
+    # 旧版打包模板会被技能发现器当成第二个 Skill；仅清理本工具的旧文件。
+    (destination / "resources/SKILL.md").unlink(missing_ok=True)
     (scripts / "courier.py").write_text(
         "from agent_courier.cli import main\nraise SystemExit(main())\n", encoding="utf-8")
     return {"installed_skill": str(target), "version": __version__,
