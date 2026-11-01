@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "agent-courier"
+version = "0.1.0"
+description = "跨机器、跨 Agent 的 Git 消息与文件快照通信工具"
+requires-python = ">=3.11"
+dependencies = []
+
+[project.scripts]
+agent-courier = "agent_courier.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+agent_courier = ["resources/*.md"]
