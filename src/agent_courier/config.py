@@ -15,7 +15,8 @@ def home():
     if override:
         return Path(override).expanduser().resolve()
     if os.name == "nt":
-        return Path(os.environ["LOCALAPPDATA"]) / "AgentCourier"
+        # 桌面应用的 AppData 可能被 MSIX 重定向；系统任务须使用实际物理目录。
+        return (Path(os.environ["LOCALAPPDATA"]) / "AgentCourier").resolve()
     return Path(os.environ.get("XDG_STATE_HOME", Path.home() / ".local/state")) / "agent-courier"
 
 

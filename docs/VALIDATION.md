@@ -10,6 +10,9 @@
 - Skill Creator 的 quick_validate 校验通过；PyYAML 6.0.3 仅装入忽略的本地校验目录，未加入程序运行时依赖。
 - WSL 用户 systemd 管理器只读检查为 `running`；这不等于服务已安装或已验证重启。
 - work-tool 同一 origin 的 `agent-remote-controller` 和 `agent-courier-controller` 在初次只读查询中不存在。WSL 使用原生 Windows SSH 及已有 Windows known_hosts 可访问该 origin；没有放宽主机密钥检查。
+- 首版源码 `dcba65af98a5f60ecb3a15aad846b90d52eeebdf` 已由 WSL Git push，HEAD、origin/master、远端 SHA 一致，ahead/behind 为 0/0。WSL 的 HTTPS push 使用已有 Windows Credential Manager，不复制或打印凭据。
+- 基础分支建立提交 `16686b3376cb07d475eeee6b6a8c19b0b5cdafa8`；旧控制通道只读监听迁移提交 `b12c84c6908ffbe94e36de737804be76a64ba802`。本机已有扫描已通过应用工具更新为每分钟基础后备通信，尚未收到对端本次确认。
+- Windows 实机安装发现 Codex MSIX 的 AppData 重定向：表面路径不能被 WSL 和系统任务直接访问。0.1.1 改为使用物理解析目录后，计划任务 `AgentCourier-work-default` 实际为 Running；主通道创建与本机登记提交为 `0b3bc1e43a5d70f7f92eab755fe0dc35ea17d9ce`。这不代表已验证桌面投递或重启。
 
 ## 尚待实机验收
 

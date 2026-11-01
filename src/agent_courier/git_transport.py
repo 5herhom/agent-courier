@@ -67,6 +67,7 @@ class GitTransport:
     @staticmethod
     def _linux_path(value):
         if re.match(r"^[A-Za-z]:[\\/]", value):
+            value = str(Path(value).resolve())
             return f"/mnt/{value[0].lower()}/" + value[3:].replace("\\", "/")
         return value
 
