@@ -5,6 +5,7 @@ import os
 import subprocess
 import sys
 import xml.etree.ElementTree as ET
+from datetime import datetime
 from pathlib import Path
 
 from ..protocol import CourierError
@@ -38,9 +39,17 @@ class WindowsTask:
         task = ET.Element("{" + ns + "}Task", {"version": "1.2"})
         account = subprocess.run(["whoami.exe"], capture_output=True, check=True,
                                  creationflags=subprocess.CREATE_NO_WINDOW).stdout.decode("mbcs").strip()
-        trigger = element(element(task, "Triggers"), "LogonTrigger")
+        triggers = element(task, "Triggers")
+        trigger = element(triggers, "LogonTrigger")
         element(trigger, "Enabled", "true")
         element(trigger, "UserId", account)
+        # 同一个任务定期尝试拉起；IgnoreNew 在监听存活时跳过，不创建模型任务。
+        guard = element(triggers, "TimeTrigger")
+        repetition = element(guard, "Repetition")
+        element(repetition, "Interval", f"PT{self.config.task_restart_interval_seconds}S")
+        element(repetition, "StopAtDurationEnd", "false")
+        element(guard, "StartBoundary", datetime.now().astimezone().isoformat(timespec="seconds"))
+        element(guard, "Enabled", "true")
         principal = element(element(task, "Principals"), "Principal")
         principal.set("id", "Author")
         element(principal, "UserId", account)
@@ -49,7 +58,7 @@ class WindowsTask:
         settings = element(task, "Settings")
         for key, value in {"MultipleInstancesPolicy": "IgnoreNew", "DisallowStartIfOnBatteries": "false",
                            "StopIfGoingOnBatteries": "false", "StartWhenAvailable": "true",
-                           "Enabled": "true", "Hidden": "true", "ExecutionTimeLimit": "PT0S"}.items():
+                           "Enabled": "false", "Hidden": "true", "ExecutionTimeLimit": "PT0S"}.items():
             element(settings, key, value)
         restart = element(settings, "RestartOnFailure")
         element(restart, "Interval", f"PT{self.config.task_restart_interval_seconds}S")

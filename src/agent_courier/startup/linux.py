@@ -8,7 +8,7 @@ from ..protocol import CourierError
 
 
 def quote(value):
-    return '"' + str(value).replace("\\", "\\\\").replace('"', '\\"').replace("%", "%%").replace("\n", "\\n") + '"'
+    return '"' + str(value).replace("\\", "\\\\").replace('"', '\\"').replace("%", "%%").replace("$", "$$").replace("\n", "\\n") + '"'
 
 
 class LinuxService:
@@ -36,7 +36,6 @@ class LinuxService:
         content = ("[Unit]\nDescription=Agent Courier Git listener\nStartLimitIntervalSec=0\n\n"
                    "[Service]\nType=simple\n"
                    f"ExecStart={' '.join(quote(a) for a in args)}\n"
-                   f"WorkingDirectory={quote(self.config.directory)}\n"
                    f"Restart=on-failure\nRestartSec={self.config.poll_interval_seconds}\n\n"
                    "[Install]\nWantedBy=default.target\n")
         self.unit.write_text(content, encoding="utf-8")
@@ -52,7 +51,11 @@ class LinuxService:
                 "running": values.get("ActiveState") == "active", **values}
 
     def disable(self, *, uninstall=False):
-        self.command("disable", "--now", self.name, check=self.unit.exists())
+        self.command("disable", self.name, check=self.unit.exists())
+        # 配置有误、尚未加载的单元也必须能取消自启动并卸载。
+        self.command("stop", self.name, check=False)
+        if self.status()["running"]:
+            raise CourierError("用户服务尚未停止，保留单元等待核实", stage="startup")
         if uninstall and self.unit.exists():
             self.unit.unlink()
             self.command("daemon-reload")

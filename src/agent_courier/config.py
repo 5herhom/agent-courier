@@ -72,6 +72,8 @@ class Config:
             raise CourierError("退避上限不能小于轮询间隔", stage="config")
         if self.startup_mode != "user-login":
             raise CourierError("首版支持显式用户登录启动", stage="config")
+        if os.name == "nt" and self.task_restart_interval_seconds < 60:
+            raise CourierError("Windows 计划任务保活间隔至少为 60 秒", stage="config")
         if self.git_backend not in {"native", "wsl"} or (self.git_backend == "wsl" and os.name != "nt"):
             raise CourierError("git_backend 仅支持 native 或 Windows 上的 wsl", stage="config")
         if not self.git_executable:

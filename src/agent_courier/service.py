@@ -188,9 +188,10 @@ class Courier:
             temp.write_bytes(content)
             os.replace(temp, target)
             files.append({**file, "local_path": str(target.resolve())})
-        if accept:
-            self.ack(message_id, "started", "本收件端通过 read --accept 明确接手")
-        return {**value, "files": files}
+        receipt = self.state.latest_receipt(message_id, self.config.actor)
+        if accept and (not receipt or receipt["status"] != "completed"):
+            receipt = self.ack(message_id, "started", "本收件端通过 read --accept 明确接手")
+        return {**value, "files": files, "receiver_receipt": receipt}
 
     def status(self):
         """本机状态查询不默认访问远端；watch 或 --sync 才更新历史。"""

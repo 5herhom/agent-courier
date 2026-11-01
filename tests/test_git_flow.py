@@ -80,6 +80,10 @@ class GitFlowTests(unittest.TestCase):
         sent = self.send()
         with self.client("beta") as courier:
             reply = courier.send("检查已完成", in_reply_to=sent["message_id"], complete=True)
+            head = courier.git.remote_head()
+            reread = courier.read(sent["message_id"], accept=True)
+            self.assertEqual(reread["receiver_receipt"]["status"], "completed")
+            self.assertEqual(courier.git.remote_head(), head)
         with self.client("alpha") as courier:
             result = courier.read(reply["message_id"])
             self.assertEqual(result["record"]["in_reply_to"], sent["message_id"])

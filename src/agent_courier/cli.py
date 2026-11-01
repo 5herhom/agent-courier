@@ -130,6 +130,10 @@ def execute(args):
 
 
 def main(argv=None):
+    # 跨 Windows 控制台与后台管道保持同一种 JSON 文本编码。
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8")
     logging.basicConfig(stream=sys.stderr, level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
     args = parser().parse_args(argv)
     try:

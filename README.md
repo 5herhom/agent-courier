@@ -42,7 +42,7 @@ agent-courier install-listener --channel work \
 
 Windows 可加 `--git-backend wsl --wsl-distribution Ubuntu`：查询、fetch、push 由 WSL Git 执行，本地对象操作使用已解析的 Windows Git，减少 WSL 启动开销。WSL 须能使用同一远端的凭据和已验证的 SSH 主机信任；不自动接受未知主机密钥。特殊 SSH 环境可通过本机可信配置 `--git-ssh-command` 指定，不从消息正文读取。
 
-后台任务固定解释器和程序绝对路径。安装目录移动后需重新安装；Windows 登录后启动、隐藏运行、单实例、异常退出重启；Linux 使用 `systemctl --user enable --now`，异常退出重启。默认不改变账户、不设置 Linux linger，也不承诺无人登录运行。没有可用用户 systemd 时明确失败。
+后台任务固定解释器和程序绝对路径。安装目录移动后需重新安装；Windows 登录后启动、隐藏运行，同一个任务每分钟尝试恢复已退出的监听，存活时由 `IgnoreNew` 跳过；Linux 使用 `systemctl --user enable --now`，异常退出重启。十秒轮询在同一个常驻进程内执行，恢复触发器不调用模型。默认不改变账户、不设置 Linux linger，也不承诺无人登录运行。没有可用用户 systemd 时明确失败。
 
 配置位于 Windows `%LOCALAPPDATA%/AgentCourier` 或 Linux `$XDG_STATE_HOME/agent-courier`（默认 `~/.local/state/agent-courier`）。`AGENT_COURIER_HOME` 可指定隔离目录。每个通道/收件箱分别保存 `config.json`、SQLite 检查点、Git 缓存、安装清单和日志。
 
@@ -86,9 +86,9 @@ agent-courier status --channel work
 agent-courier status --channel work --sync
 ```
 
-读取默认不改变处理状态；接手时 `--accept` 记录 `started`。回复 `--complete` 同时为原消息追加 `completed`。回复文件使用同一模板。只能为本机实际收件端确认；完成、失败等回执需要真实依据。
+读取默认不改变处理状态；接手时 `--accept` 记录 `started`。先核对返回的 `receiver_receipt`，已 completed 的消息不重复处理，`--accept` 不会将它退回 started。回复 `--complete` 同时为原消息追加 `completed`。回复文件使用同一模板。只能为本机实际收件端确认；完成、失败等回执需要真实依据。
 
-状态区分 `received`、`delivered`、`started`、`completed`、`failed` 和 `delivery-unknown`。Codex Queue 成功退出仅证明接受入队，resume 的警告不证明开始执行；任务结果须以接收 Agent 的回执和回复判断。当前 Queue CLI 没有可靠的历史查询接口，未知投递保留待核实，不自动再入队。
+状态区分 `received`、`delivered`、`started`、`completed`、`failed` 和 `delivery-unknown`。适配器要求 Queue 支持 `--thread` 和 `--message`；仅在本机帮助声明支持时附加 `--resume`，兼容没有该参数的版本。Codex Queue 成功退出仅证明接受入队，resume 的警告不证明开始执行；任务结果须以接收 Agent 的回执和回复判断。当前 Queue CLI 没有可靠的历史查询接口，未知投递保留待核实，不自动再入队。
 
 ```bash
 agent-courier retry --channel work --message-id MESSAGE_ID
