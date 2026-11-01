@@ -1,6 +1,8 @@
 """进程退出即释放的跨平台文件锁；锁文件存在不等于进程仍运行。"""
 
+import errno
 import os
+import time
 from contextlib import contextmanager
 
 from .protocol import CourierError
@@ -17,11 +19,15 @@ def locked(path, *, blocking=True):
                 handle.write(b"\0")
                 handle.flush()
             handle.seek(0)
-            mode = msvcrt.LK_LOCK if blocking else msvcrt.LK_NBLCK
-            try:
-                msvcrt.locking(handle.fileno(), mode, 1)
-            except OSError as exc:
-                raise CourierError("本端点已有进程持有运行锁", stage="lock") from exc
+            # LK_LOCK 最多只等约十秒；操作锁须像 flock 一样等待现有操作结束。
+            while True:
+                try:
+                    msvcrt.locking(handle.fileno(), msvcrt.LK_NBLCK, 1)
+                    break
+                except OSError as exc:
+                    if not blocking or exc.errno not in {errno.EACCES, errno.EAGAIN}:
+                        raise CourierError("本端点已有进程持有运行锁", stage="lock") from exc
+                    time.sleep(0.1)
         else:
             import fcntl
             try:
